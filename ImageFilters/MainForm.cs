@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using ImageFilters.Commands;
+
 namespace ImageFilters
 {
     public partial class MainForm : Form
@@ -59,69 +61,6 @@ namespace ImageFilters
         #region PRIVATE
 
         /// <summary>
-        /// Inverts image.
-        /// </summary>
-        /// <param name="inputImage">Image to invert.</param>
-        /// <param name="outputImage">Output image.</param>
-        private void InvertImage(Bitmap inputImage, out Bitmap outputImage)
-        {
-            // clone input image
-            outputImage = (Bitmap)inputImage.Clone();
-
-            try
-            {
-                // read bitmap to memory
-                BitmapData srcData = outputImage.LockBits(
-                    new Rectangle(0, 0, outputImage.Width, outputImage.Height),
-                    ImageLockMode.ReadWrite,
-                    outputImage.PixelFormat);
-
-                unsafe
-                {
-                    // get bytes per pixel
-                    int bytesPerPixel = Image.GetPixelFormatSize(outputImage.PixelFormat) / 8;
-                    // get image height
-                    int heightInPixels = srcData.Height;
-                    // get image width in bytes
-                    int widthInBytes = srcData.Width * bytesPerPixel;
-                    // get pointer to the first byte
-                    byte* ptrFirstPixel = (byte*)srcData.Scan0;
-
-                    // memory for pixel values
-                    byte oldBlue = 0;
-                    byte oldGreen = 0;
-                    byte oldRed = 0;
-
-                    // for each row
-                    for (int y = 0; y < heightInPixels; y++)
-                    {
-                        // get pointer to current row
-                        byte* currentLine = ptrFirstPixel + (y * srcData.Stride);
-                        // for each pixel in row
-                        for (int x = 0; x < widthInBytes; x += bytesPerPixel)
-                        {
-                            // get pixel value
-                            oldBlue = currentLine[x];
-                            oldGreen = currentLine[x + 1];
-                            oldRed = currentLine[x + 2];
-
-                            // calculate new pixel value
-                            currentLine[x] = (byte)(255 - oldBlue);
-                            currentLine[x + 1] = (byte)(255 - oldGreen);
-                            currentLine[x + 2] = (byte)(255 - oldRed);
-                        }
-                    }
-                }
-
-                outputImage.UnlockBits(srcData);
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        /// <summary>
         /// Opens an image when "OpenMenuItem" was clicked.
         /// </summary>
         /// <param name="sender">Caller object.</param>
@@ -143,6 +82,7 @@ namespace ImageFilters
                         // delete it
                         _filteredImage.Dispose();
 
+                    filteredPictureBox.Image = null;
                     // open new image
                     _originalImage = new Bitmap(_openFileDialog.FileName);
                     // set image to the viewer
@@ -163,12 +103,36 @@ namespace ImageFilters
         /// <param name="e">Event information.</param>
         private void invertToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            InvertImage(_originalImage, out _filteredImage);
+            // if there is already filtered image
+            if (_filteredImage != null)
+                // delete it
+                _filteredImage.Dispose();
+
+            // create command
+            InvertCommand invertCommand = new InvertCommand(_originalImage);
+            // execute it
+            invertCommand.Execute();
+
+            // if there is error
+            if (invertCommand.Error != null)
+            {
+                MessageBox.Show(invertCommand.Error.Message);
+                // return
+                return;
+            }
+
+            // set filter image
+            _filteredImage = invertCommand.Result;
 
             mainPictureBox.Image = _filteredImage;
             filteredPictureBox.Image = _filteredImage;
         }
 
+        /// <summary>
+        /// Changes image in main picture box by clicking on side once.
+        /// </summary>
+        /// <param name="sender">Caller object.</param>
+        /// <param name="e">Event information.</param>
         private void pictureBox_Click(object sender, EventArgs e)
         {
             PictureBox sourceBox = sender as PictureBox;

@@ -29,7 +29,7 @@ namespace ImageFilters
         /// </summary>
         private void InitializeComponent()
         {
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.mainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -41,7 +41,7 @@ namespace ImageFilters
             this.originalPictureBox = new System.Windows.Forms.PictureBox();
             this.filteredPictureBox = new System.Windows.Forms.PictureBox();
             this.mainPictureBox = new System.Windows.Forms.PictureBox();
-            this.menuStrip1.SuspendLayout();
+            this.mainMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -55,16 +55,16 @@ namespace ImageFilters
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
-            // menuStrip1
+            // mainMenuStrip
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mainMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.filtersToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 24);
-            this.menuStrip1.TabIndex = 0;
-            this.menuStrip1.Text = "menuStrip1";
+            this.mainMenuStrip.Location = new System.Drawing.Point(0, 0);
+            this.mainMenuStrip.Name = "mainMenuStrip";
+            this.mainMenuStrip.Size = new System.Drawing.Size(800, 24);
+            this.mainMenuStrip.TabIndex = 0;
+            this.mainMenuStrip.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
@@ -190,12 +190,12 @@ namespace ImageFilters
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.splitContainer1);
-            this.Controls.Add(this.menuStrip1);
-            this.MainMenuStrip = this.menuStrip1;
+            this.Controls.Add(this.mainMenuStrip);
+            this.MainMenuStrip = this.mainMenuStrip;
             this.Name = "MainForm";
             this.Text = "Image filters";
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
+            this.mainMenuStrip.ResumeLayout(false);
+            this.mainMenuStrip.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -214,7 +214,7 @@ namespace ImageFilters
 
         #endregion
 
-        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.MenuStrip mainMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
