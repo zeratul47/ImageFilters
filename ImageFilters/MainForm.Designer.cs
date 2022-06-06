@@ -40,7 +40,9 @@ namespace ImageFilters
             this.selctImageSplitContainer = new System.Windows.Forms.SplitContainer();
             this.originalPictureBox = new System.Windows.Forms.PictureBox();
             this.filteredPictureBox = new System.Windows.Forms.PictureBox();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.mainPictureBox = new System.Windows.Forms.PictureBox();
+            this.mainPicturePropertyGrid = new System.Windows.Forms.PropertyGrid();
             this.mainMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -52,6 +54,10 @@ namespace ImageFilters
             this.selctImageSplitContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.originalPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.filteredPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -125,7 +131,7 @@ namespace ImageFilters
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.mainPictureBox);
+            this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Size = new System.Drawing.Size(800, 426);
             this.splitContainer1.SplitterDistance = 193;
             this.splitContainer1.TabIndex = 1;
@@ -174,15 +180,43 @@ namespace ImageFilters
             this.filteredPictureBox.TabStop = false;
             this.filteredPictureBox.Click += new System.EventHandler(this.pictureBox_Click);
             // 
+            // splitContainer2
+            // 
+            this.splitContainer2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.splitContainer2.Cursor = System.Windows.Forms.Cursors.VSplit;
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.mainPictureBox);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.mainPicturePropertyGrid);
+            this.splitContainer2.Size = new System.Drawing.Size(603, 426);
+            this.splitContainer2.SplitterDistance = 434;
+            this.splitContainer2.TabIndex = 1;
+            // 
             // mainPictureBox
             // 
             this.mainPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainPictureBox.Location = new System.Drawing.Point(0, 0);
             this.mainPictureBox.Name = "mainPictureBox";
-            this.mainPictureBox.Size = new System.Drawing.Size(601, 424);
+            this.mainPictureBox.Size = new System.Drawing.Size(432, 424);
             this.mainPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.mainPictureBox.TabIndex = 0;
             this.mainPictureBox.TabStop = false;
+            this.mainPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.mainPictureBox_Paint);
+            // 
+            // mainPicturePropertyGrid
+            // 
+            this.mainPicturePropertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainPicturePropertyGrid.Location = new System.Drawing.Point(0, 0);
+            this.mainPicturePropertyGrid.Name = "mainPicturePropertyGrid";
+            this.mainPicturePropertyGrid.Size = new System.Drawing.Size(163, 424);
+            this.mainPicturePropertyGrid.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -206,6 +240,10 @@ namespace ImageFilters
             this.selctImageSplitContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.originalPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.filteredPictureBox)).EndInit();
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -226,6 +264,8 @@ namespace ImageFilters
         private System.Windows.Forms.SplitContainer selctImageSplitContainer;
         private System.Windows.Forms.PictureBox originalPictureBox;
         private System.Windows.Forms.PictureBox filteredPictureBox;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.PropertyGrid mainPicturePropertyGrid;
     }
 }
 

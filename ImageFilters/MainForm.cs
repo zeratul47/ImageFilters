@@ -140,6 +140,16 @@ namespace ImageFilters
                 mainPictureBox.Image = sourceBox.Image;
         }
 
+        /// <summary>
+        /// Changes properties in property grid according to current image.
+        /// </summary>
+        /// <param name="sender">Caller object.</param>
+        /// <param name="e">Event information.</param>
+        private void mainPictureBox_Paint(object sender, PaintEventArgs e)
+        {
+            mainPicturePropertyGrid.SelectedObject = mainPictureBox.Image;
+        }
+
         #endregion
 
         #endregion
