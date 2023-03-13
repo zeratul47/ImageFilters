@@ -94,17 +94,17 @@ namespace ImageFilters.Commands.Utils
 
                 _colorDataResult.Add(
                     Tuple.Create(
-                        Color.FromArgb(avgA, avgR, avgG, avgB), 
+                        Color.FromArgb(avgA, avgR, avgG, avgB),
                         new List<int>(indexesToMap)));
             }
         }
 
         public void ExecuteCut(int startIndex, int endIndex, int step)
         {
-            if (step > QuantizationNumber)
+            if (step > QuantizationNumber + 1)
                 return;
 
-            if (step == QuantizationNumber)
+            if (step == QuantizationNumber + 1)
                 _indexes.Add(Tuple.Create(startIndex, endIndex));
 
             Color ranges = GetRanges(_colorDataSource, startIndex, endIndex);
@@ -125,7 +125,7 @@ namespace ImageFilters.Commands.Utils
                 _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
             }
 
-            int midIndex = (endIndex - startIndex) / 2;
+            int midIndex = (endIndex + startIndex) / 2;
             ExecuteCut(startIndex, midIndex, step + 1);
             ExecuteCut(midIndex, endIndex, step + 1);
         }

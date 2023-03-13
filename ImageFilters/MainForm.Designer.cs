@@ -43,6 +43,7 @@ namespace ImageFilters
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.mainPictureBox = new System.Windows.Forms.PictureBox();
             this.mainPicturePropertyGrid = new System.Windows.Forms.PropertyGrid();
+            this.changePixelFormatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -103,7 +104,8 @@ namespace ImageFilters
             // filtersToolStripMenuItem
             // 
             this.filtersToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.invertToolStripMenuItem});
+            this.invertToolStripMenuItem,
+            this.changePixelFormatToolStripMenuItem});
             this.filtersToolStripMenuItem.Name = "filtersToolStripMenuItem";
             this.filtersToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.filtersToolStripMenuItem.Text = "Filters";
@@ -111,7 +113,7 @@ namespace ImageFilters
             // invertToolStripMenuItem
             // 
             this.invertToolStripMenuItem.Name = "invertToolStripMenuItem";
-            this.invertToolStripMenuItem.Size = new System.Drawing.Size(104, 22);
+            this.invertToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.invertToolStripMenuItem.Text = "Invert";
             this.invertToolStripMenuItem.Click += new System.EventHandler(this.invertToolStripMenuItem_Click);
             // 
@@ -218,6 +220,13 @@ namespace ImageFilters
             this.mainPicturePropertyGrid.Size = new System.Drawing.Size(163, 424);
             this.mainPicturePropertyGrid.TabIndex = 0;
             // 
+            // changePixelFormatToolStripMenuItem
+            // 
+            this.changePixelFormatToolStripMenuItem.Name = "changePixelFormatToolStripMenuItem";
+            this.changePixelFormatToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.changePixelFormatToolStripMenuItem.Text = "ChangePixelFormat";
+            this.changePixelFormatToolStripMenuItem.Click += new System.EventHandler(this.changePixelFormatToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -266,6 +275,7 @@ namespace ImageFilters
         private System.Windows.Forms.PictureBox filteredPictureBox;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.PropertyGrid mainPicturePropertyGrid;
+        private System.Windows.Forms.ToolStripMenuItem changePixelFormatToolStripMenuItem;
     }
 }
 

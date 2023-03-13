@@ -128,6 +128,28 @@ namespace ImageFilters
             filteredPictureBox.Image = _filteredImage;
         }
 
+
+        private void changePixelFormatToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ConvertPixelFormatCommand changeFormatCommad = new ConvertPixelFormatCommand(_originalImage);
+            changeFormatCommad.TargetPixelFormat = PixelFormat.Format8bppIndexed;
+            changeFormatCommad.Execute();
+            
+            // if there is error
+            if (changeFormatCommad.Error != null)
+            {
+                MessageBox.Show(changeFormatCommad.Error.Message);
+                // return
+                return;
+            }
+
+            // set filter image
+            _filteredImage = changeFormatCommad.Result;
+
+            mainPictureBox.Image = _filteredImage;
+            filteredPictureBox.Image = _filteredImage;
+        }
+
         /// <summary>
         /// Changes image in main picture box by clicking on side once.
         /// </summary>

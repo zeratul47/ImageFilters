@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ImageFilters.Commands.Utils;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImageFilters.Commands
 {
@@ -138,6 +138,10 @@ namespace ImageFilters.Commands
                     case PixelFormat.Format32bppArgb:
                         Execute24rgb(srcData, resData);
                         break;
+
+                    case PixelFormat.Format8bppIndexed:
+                        Execute8indexed(srcData, resData);
+                        break;
                 }
             }
             // if error happend
@@ -225,9 +229,9 @@ namespace ImageFilters.Commands
                                 xRes += bytesPerPixelRes, xSrc += bytesPerPixelSrc)
                             {
                                 // get pixel value
-                                currentLineSrc[xRes] = currentLineSrc[xSrc];
-                                currentLineSrc[xRes + 1] = currentLineSrc[xSrc + 1];
-                                currentLineSrc[xRes + 2] = currentLineSrc[xSrc + 2];
+                                currentLineRes[xRes] = currentLineSrc[xSrc];
+                                currentLineRes[xRes + 1] = currentLineSrc[xSrc + 1];
+                                currentLineRes[xRes + 2] = currentLineSrc[xSrc + 2];
                             }
                         }
                         break;
@@ -263,9 +267,118 @@ namespace ImageFilters.Commands
 
         }
 
-        private void Execute8indexed(BitmapData srcData)
+        private void Execute8indexed(BitmapData srcData, BitmapData resData)
         {
+            unsafe
+            {
+                // get bytes per pixel src
+                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / 8;
+                // get image height
+                int heightInPixels = srcData.Height;
+                // get image width in bytes
+                int widthInBytesSrc = srcData.Width * bytesPerPixelSrc;
+                // get pointer to the first byte
+                byte* ptrFirstPixelSrc = (byte*)srcData.Scan0;
 
+
+                List<Tuple<Color, List<int>>> data = new List<Tuple<Color, List<int>>>(srcData.Height * srcData.Width);
+
+                switch (srcData.PixelFormat)
+                {
+                    case PixelFormat.Format16bppGrayScale:
+                        //Execute16gray(srcData);
+                        break;
+                    case PixelFormat.Format16bppArgb1555:
+                    case PixelFormat.Format16bppRgb555:
+                        break;
+                    case PixelFormat.Format16bppRgb565:
+                        break;
+                    case PixelFormat.Format24bppRgb:
+                    case PixelFormat.Format32bppRgb:
+                        // for each row
+                        for (int y = 0; y < heightInPixels; y++)
+                        {
+                            // get pointer to current row
+                            byte* currentLineSrc = ptrFirstPixelSrc + (y * srcData.Stride);
+                            // for each pixel in row
+                            for (int xSrc = 0;
+                                xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
+                            {
+                                List<int> indexes = new List<int>();
+                                indexes.Add(y * srcData.Width + xSrc / 3);
+                                data.Add(
+                                    Tuple.Create(Color.FromArgb(0,
+                                    currentLineSrc[xSrc],
+                                    currentLineSrc[xSrc + 1],
+                                    currentLineSrc[xSrc + 2]), indexes));
+                            }
+                        }
+
+                        break;
+                    case PixelFormat.Format32bppArgb:
+                        // for each row
+                        for (int y = 0; y < heightInPixels; y++)
+                        {
+                            // get pointer to current row
+                            byte* currentLineSrc = ptrFirstPixelSrc + (y * srcData.Stride);
+                            // for each pixel in row
+                            for (int xSrc = 0;
+                                xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
+                            {
+                                List<int> indexes = new List<int>();
+                                indexes.Add(y * srcData.Width + xSrc / 3);
+                                data.Add(
+                                    Tuple.Create(Color.FromArgb(currentLineSrc[xSrc],
+                                    currentLineSrc[xSrc + 1],
+                                    currentLineSrc[xSrc + 2],
+                                    currentLineSrc[xSrc + 3]), indexes));
+                            }
+                        }
+
+                        break;
+                    case PixelFormat.Format48bppRgb:
+                    case PixelFormat.Format64bppArgb:
+
+                        break;
+                    case PixelFormat.Format1bppIndexed:
+                    case PixelFormat.Format4bppIndexed:
+                    case PixelFormat.Format8bppIndexed:
+                        break;
+                }
+
+
+                MedianCut medianCut = new MedianCut(data, 8);
+                medianCut.Execute();
+
+                // get pointer to the first byte result 
+                byte* ptrFirstPixelRes = (byte*)resData.Scan0;
+                // get bytes per pixel src
+                int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / 8;
+                int widthInBytesRes = resData.Width * bytesPerPixelRes;
+
+                int yIndex;
+                int xIndex;
+                List<Color> colors = new List<Color>(medianCut.ColorDataResult.Count);
+                ColorPalette palette = _resultImage.Palette;
+                for (int i = 0; i < medianCut.ColorDataResult.Count; i++)
+                {
+                    Tuple<Color, List<int>> colorCut = medianCut.ColorDataResult[i];
+                    palette.Entries[i] = colorCut.Item1;
+                    foreach (int linearIndex in colorCut.Item2)
+                    {
+                        yIndex = linearIndex / widthInBytesRes;
+                        xIndex = linearIndex % widthInBytesRes;
+
+                        if (yIndex > resData.Height || xIndex > resData.Width)
+                        {
+                            Debug.Print("shit");
+                        }
+                        // get pointer to current row
+                        byte* currentLineRes = ptrFirstPixelRes + (yIndex * resData.Stride);
+                        currentLineRes[xIndex] = (byte)i;
+                    }
+                }
+            }
         }
 
         #endregion
