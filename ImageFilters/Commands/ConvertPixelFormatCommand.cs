@@ -12,6 +12,8 @@ namespace ImageFilters.Commands
     {
         #region FIELDS
 
+        const byte BIT_PER_BYTE = 8;
+
         /// <summary>
         /// Image to invert.
         /// </summary>
@@ -139,8 +141,14 @@ namespace ImageFilters.Commands
                         Execute24rgb(srcData, resData);
                         break;
 
+                    case PixelFormat.Format1bppIndexed:
+                        ExecuteIndexed(srcData, resData, 1);
+                        break;
+                    case PixelFormat.Format4bppIndexed:
+                        ExecuteIndexed(srcData, resData, 4);
+                        break;
                     case PixelFormat.Format8bppIndexed:
-                        Execute8indexed(srcData, resData);
+                        ExecuteIndexed(srcData, resData, 8);
                         break;
                 }
             }
@@ -191,7 +199,7 @@ namespace ImageFilters.Commands
             unsafe
             {
                 // get bytes per pixel src
-                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / 8;
+                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / BIT_PER_BYTE;
                 // get image height
                 int heightInPixels = srcData.Height;
                 // get image width in bytes
@@ -213,7 +221,7 @@ namespace ImageFilters.Commands
                     case PixelFormat.Format32bppRgb:
                     case PixelFormat.Format32bppArgb:
                         // get bytes per pixel result
-                        int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / 8;
+                        int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / BIT_PER_BYTE;
                         // get pointer to the first byte result 
                         byte* ptrFirstPixelRes = (byte*)resData.Scan0;
 
@@ -257,22 +265,12 @@ namespace ImageFilters.Commands
 
         }
 
-        private void Execute1indexed(BitmapData srcData)
-        {
-
-        }
-
-        private void Execute4indexed(BitmapData srcData)
-        {
-
-        }
-
-        private void Execute8indexed(BitmapData srcData, BitmapData resData)
+        private void ExecuteIndexed(BitmapData srcData, BitmapData resData, int quantNumber)
         {
             unsafe
             {
                 // get bytes per pixel src
-                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / 8;
+                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / BIT_PER_BYTE;
                 // get image height
                 int heightInPixels = srcData.Height;
                 // get image width in bytes
@@ -307,10 +305,10 @@ namespace ImageFilters.Commands
                                 List<int> indexes = new List<int>();
                                 indexes.Add(y * srcData.Width + xSrc / 3);
                                 data.Add(
-                                    Tuple.Create(Color.FromArgb(0,
-                                    currentLineSrc[xSrc],
+                                    Tuple.Create(Color.FromArgb(255,
+                                    currentLineSrc[xSrc + 2],
                                     currentLineSrc[xSrc + 1],
-                                    currentLineSrc[xSrc + 2]), indexes));
+                                    currentLineSrc[xSrc]), indexes));
                             }
                         }
 
@@ -329,9 +327,9 @@ namespace ImageFilters.Commands
                                 indexes.Add(y * srcData.Width + xSrc / 3);
                                 data.Add(
                                     Tuple.Create(Color.FromArgb(currentLineSrc[xSrc],
-                                    currentLineSrc[xSrc + 1],
+                                    currentLineSrc[xSrc + 3],
                                     currentLineSrc[xSrc + 2],
-                                    currentLineSrc[xSrc + 3]), indexes));
+                                    currentLineSrc[xSrc + 1]), indexes));
                             }
                         }
 
@@ -341,24 +339,163 @@ namespace ImageFilters.Commands
 
                         break;
                     case PixelFormat.Format1bppIndexed:
+                        // TODO посмотреть как 1bpp читается
                     case PixelFormat.Format4bppIndexed:
                     case PixelFormat.Format8bppIndexed:
                         break;
                 }
 
 
-                MedianCut medianCut = new MedianCut(data, 8);
+                MedianCut medianCut = new MedianCut(data, quantNumber);
                 medianCut.Execute();
+                switch (resData.PixelFormat)
+                {
+                    case PixelFormat.Format1bppIndexed:
+                        WriteIndex1(resData, medianCut);
+                        break;
+                    case PixelFormat.Format4bppIndexed:
+                        WriteIndex4(resData, medianCut);
+                        break;
+                    case PixelFormat.Format8bppIndexed:
+                        WriteIndex8(resData, medianCut);
+                        break;
+                }
+            }
+        }
 
+        /// <summary>
+        /// Writes 1 bpp indexed image from the quantization result.
+        /// </summary>
+        /// <param name="resData">Bitmap data of result image.</param>
+        /// <param name="medianCut">Quantization algorithm result.</param>
+        private void WriteIndex1(
+            BitmapData resData,
+            MedianCut medianCut)
+        {
+            unsafe
+            {
                 // get pointer to the first byte result 
                 byte* ptrFirstPixelRes = (byte*)resData.Scan0;
                 // get bytes per pixel src
-                int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / 8;
+                int bitsPerPixel = Image.GetPixelFormatSize(resData.PixelFormat);
+                // get pixels in one byte
+                int pixelsInByte = BIT_PER_BYTE / bitsPerPixel;
+
+                // y index of the image
+                int yIndex;
+                // x index of the image
+                int xIndex;
+                // bit number in byte
+                int bitNumber;
+                // current line of the image
+                byte* currentLineRes;
+
+                // get palette of the image
+                ColorPalette palette = _resultImage.Palette;
+
+                // for each color in the result
+                for (int i = 0; i < medianCut.ColorDataResult.Count; i++)
+                {
+                    // get color and indecies
+                    Tuple<Color, List<int>> colorCut = medianCut.ColorDataResult[i];
+                    // write color into palette
+                    palette.Entries[i] = colorCut.Item1;
+
+                    // for each pixel of the current color
+                    foreach (int linearIndex in colorCut.Item2)
+                    {
+                        // get indicies of the pixel
+                        yIndex = linearIndex / resData.Width;
+                        xIndex = linearIndex % resData.Width;
+                        bitNumber = xIndex % pixelsInByte;
+                        xIndex = xIndex / pixelsInByte;
+
+                        // get pixel values
+                        currentLineRes = ptrFirstPixelRes + ((yIndex * resData.Stride) + xIndex);
+
+                        // write pixel data
+                        currentLineRes[0] |= (byte)(i << (7 - bitNumber));
+                    }
+                }
+                // write new palette to the result image
+                _resultImage.Palette = palette;
+            }
+        }
+
+        /// <summary>
+        /// Writes 1 bpp indexed image from the quantization result.
+        /// </summary>
+        /// <param name="resData">Bitmap data of result image.</param>
+        /// <param name="medianCut">Quantization algorithm result.</param>
+        private void WriteIndex4(
+            BitmapData resData,
+            MedianCut medianCut)
+        {
+            unsafe
+            {
+                // get pointer to the first byte result 
+                byte* ptrFirstPixelRes = (byte*)resData.Scan0;
+                // get bytes per pixel src
+                int bitsPerPixel = Image.GetPixelFormatSize(resData.PixelFormat);
+                // get pixels in one byte
+                int pixelsInByte = BIT_PER_BYTE / bitsPerPixel;
+
+                // y index of the image
+                int yIndex;
+                // x index of the image
+                int xIndex;
+                // bit number in byte
+                int bitNumber;
+                // current line of the image
+                byte* currentLineRes;
+
+                // get palette of the image
+                ColorPalette palette = _resultImage.Palette;
+
+                // for each color in the result
+                for (int i = 0; i < medianCut.ColorDataResult.Count; i++)
+                {
+                    // get color and indecies
+                    Tuple<Color, List<int>> colorCut = medianCut.ColorDataResult[i];
+                    // write color into palette
+                    palette.Entries[i] = colorCut.Item1;
+
+                    // for each pixel of the current color
+                    foreach (int linearIndex in colorCut.Item2)
+                    {
+                        // get indicies of the pixel
+                        yIndex = linearIndex / resData.Width;
+                        xIndex = linearIndex % resData.Width;
+                        bitNumber = xIndex % pixelsInByte == 0 ? 0 : 4;
+                        xIndex = xIndex / pixelsInByte;
+
+                        // get pixel values
+                        currentLineRes = ptrFirstPixelRes + ((yIndex * resData.Stride) + xIndex);
+
+                        // write pixel data
+                        currentLineRes[0] |= (byte)(i << (4 - bitNumber));
+                    }
+                }
+                // write new palette to the result image
+                _resultImage.Palette = palette;
+            }
+        }
+
+        private void WriteIndex8(
+            BitmapData resData,
+            MedianCut medianCut)
+        {
+            unsafe
+            {
+                // get pointer to the first byte result 
+                byte* ptrFirstPixelRes = (byte*)resData.Scan0;
+                // get bytes per pixel src
+                int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / BIT_PER_BYTE;
                 int widthInBytesRes = resData.Width * bytesPerPixelRes;
 
                 int yIndex;
                 int xIndex;
-                List<Color> colors = new List<Color>(medianCut.ColorDataResult.Count);
+                byte* currentLineRes;
                 ColorPalette palette = _resultImage.Palette;
                 for (int i = 0; i < medianCut.ColorDataResult.Count; i++)
                 {
@@ -369,15 +506,12 @@ namespace ImageFilters.Commands
                         yIndex = linearIndex / widthInBytesRes;
                         xIndex = linearIndex % widthInBytesRes;
 
-                        if (yIndex > resData.Height || xIndex > resData.Width)
-                        {
-                            Debug.Print("shit");
-                        }
                         // get pointer to current row
-                        byte* currentLineRes = ptrFirstPixelRes + (yIndex * resData.Stride);
+                        currentLineRes = ptrFirstPixelRes + (yIndex * resData.Stride);
                         currentLineRes[xIndex] = (byte)i;
                     }
                 }
+                _resultImage.Palette = palette;
             }
         }
 

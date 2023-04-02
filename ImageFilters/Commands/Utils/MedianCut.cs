@@ -109,21 +109,20 @@ namespace ImageFilters.Commands.Utils
 
             Color ranges = GetRanges(_colorDataSource, startIndex, endIndex);
 
-            if (ranges.R > ranges.B && ranges.R > ranges.G)
-            {
-                _comparer.ChannelID = 1;
-                _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
-            }
-            else if (ranges.G > ranges.B && ranges.G > ranges.R)
+
+            if (ranges.G >= ranges.B && ranges.G >= ranges.R)
             {
                 _comparer.ChannelID = 2;
-                _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
+            }
+            else if(ranges.B >= ranges.G && ranges.B >= ranges.R)
+            {
+                _comparer.ChannelID = 3;
             }
             else
             {
-                _comparer.ChannelID = 3;
-                _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
+                _comparer.ChannelID = 1;
             }
+            _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
 
             int midIndex = (endIndex + startIndex) / 2;
             ExecuteCut(startIndex, midIndex, step + 1);

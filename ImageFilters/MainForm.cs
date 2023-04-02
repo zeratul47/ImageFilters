@@ -132,7 +132,7 @@ namespace ImageFilters
         private void changePixelFormatToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ConvertPixelFormatCommand changeFormatCommad = new ConvertPixelFormatCommand(_originalImage);
-            changeFormatCommad.TargetPixelFormat = PixelFormat.Format8bppIndexed;
+            changeFormatCommad.TargetPixelFormat = PixelFormat.Format4bppIndexed;
             changeFormatCommad.Execute();
             
             // if there is error
