@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -115,7 +116,13 @@ namespace ImageFilters.Commands
                     case PixelFormat.Format24bppRgb:
                     case PixelFormat.Format32bppRgb:
                     case PixelFormat.Format32bppArgb:
+                        var watch = new System.Diagnostics.Stopwatch();
+
+                        watch.Start();
                         Execute24and32argb(srcData);
+                        watch.Stop();
+
+                        Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
                         break;
                 }
 

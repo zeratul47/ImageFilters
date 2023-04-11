@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
 
 namespace ImageFilters.Commands
 {
@@ -207,7 +206,7 @@ namespace ImageFilters.Commands
                 // get pointer to the first byte
                 byte* ptrFirstPixelSrc = (byte*)srcData.Scan0;
 
-                switch (resData.PixelFormat)
+                switch (srcData.PixelFormat)
                 {
                     case PixelFormat.Format16bppGrayScale:
                         //Execute16gray(srcData);
@@ -303,7 +302,7 @@ namespace ImageFilters.Commands
                                 xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
                             {
                                 List<int> indexes = new List<int>();
-                                indexes.Add(y * srcData.Width + xSrc / 3);
+                                indexes.Add(y * srcData.Width + xSrc / bytesPerPixelSrc);
                                 data.Add(
                                     Tuple.Create(Color.FromArgb(255,
                                     currentLineSrc[xSrc + 2],
@@ -324,12 +323,12 @@ namespace ImageFilters.Commands
                                 xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
                             {
                                 List<int> indexes = new List<int>();
-                                indexes.Add(y * srcData.Width + xSrc / 3);
+                                indexes.Add(y * srcData.Width + xSrc / bytesPerPixelSrc);
                                 data.Add(
-                                    Tuple.Create(Color.FromArgb(currentLineSrc[xSrc],
-                                    currentLineSrc[xSrc + 3],
+                                    Tuple.Create(Color.FromArgb(currentLineSrc[xSrc + 3],
                                     currentLineSrc[xSrc + 2],
-                                    currentLineSrc[xSrc + 1]), indexes));
+                                    currentLineSrc[xSrc + 1],
+                                    currentLineSrc[xSrc]), indexes));
                             }
                         }
 
@@ -345,9 +344,15 @@ namespace ImageFilters.Commands
                         break;
                 }
 
+                //var watch = new System.Diagnostics.Stopwatch();
 
+                //watch.Start();
                 MedianCut medianCut = new MedianCut(data, quantNumber);
                 medianCut.Execute();
+                //watch.Stop();
+
+                //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
+
                 switch (resData.PixelFormat)
                 {
                     case PixelFormat.Format1bppIndexed:
@@ -423,7 +428,7 @@ namespace ImageFilters.Commands
         }
 
         /// <summary>
-        /// Writes 1 bpp indexed image from the quantization result.
+        /// Writes 4 bpp indexed image from the quantization result.
         /// </summary>
         /// <param name="resData">Bitmap data of result image.</param>
         /// <param name="medianCut">Quantization algorithm result.</param>
@@ -481,6 +486,11 @@ namespace ImageFilters.Commands
             }
         }
 
+        /// <summary>
+        /// Writes 8 bpp indexed image from the quantization result.
+        /// </summary>
+        /// <param name="resData">Bitmap data of result image.</param>
+        /// <param name="medianCut">Quantization algorithm result.</param>
         private void WriteIndex8(
             BitmapData resData,
             MedianCut medianCut)
@@ -493,24 +503,39 @@ namespace ImageFilters.Commands
                 int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / BIT_PER_BYTE;
                 int widthInBytesRes = resData.Width * bytesPerPixelRes;
 
+                // y index of the image
                 int yIndex;
+                // x index of the image
                 int xIndex;
+                // current line of the image
                 byte* currentLineRes;
+
+                // get palette of the image
                 ColorPalette palette = _resultImage.Palette;
+
+                // for each color in the result
                 for (int i = 0; i < medianCut.ColorDataResult.Count; i++)
                 {
+                    // get color and indecies
                     Tuple<Color, List<int>> colorCut = medianCut.ColorDataResult[i];
+                    // write color into palette
                     palette.Entries[i] = colorCut.Item1;
+
+                    // for each pixel of the current color
                     foreach (int linearIndex in colorCut.Item2)
                     {
+                        // get indicies of the pixel
                         yIndex = linearIndex / widthInBytesRes;
                         xIndex = linearIndex % widthInBytesRes;
 
                         // get pointer to current row
                         currentLineRes = ptrFirstPixelRes + (yIndex * resData.Stride);
+                        // write pixel data
                         currentLineRes[xIndex] = (byte)i;
                     }
                 }
+
+                // write new palette to the result image
                 _resultImage.Palette = palette;
             }
         }

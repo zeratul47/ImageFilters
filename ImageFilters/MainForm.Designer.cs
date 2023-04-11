@@ -36,6 +36,7 @@ namespace ImageFilters
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.filtersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.invertToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changePixelFormatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.selctImageSplitContainer = new System.Windows.Forms.SplitContainer();
             this.originalPictureBox = new System.Windows.Forms.PictureBox();
@@ -43,7 +44,6 @@ namespace ImageFilters
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.mainPictureBox = new System.Windows.Forms.PictureBox();
             this.mainPicturePropertyGrid = new System.Windows.Forms.PropertyGrid();
-            this.changePixelFormatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -86,20 +86,21 @@ namespace ImageFilters
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(100, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // filtersToolStripMenuItem
             // 
@@ -113,9 +114,16 @@ namespace ImageFilters
             // invertToolStripMenuItem
             // 
             this.invertToolStripMenuItem.Name = "invertToolStripMenuItem";
-            this.invertToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.invertToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.invertToolStripMenuItem.Text = "Invert";
             this.invertToolStripMenuItem.Click += new System.EventHandler(this.invertToolStripMenuItem_Click);
+            // 
+            // changePixelFormatToolStripMenuItem
+            // 
+            this.changePixelFormatToolStripMenuItem.Name = "changePixelFormatToolStripMenuItem";
+            this.changePixelFormatToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.changePixelFormatToolStripMenuItem.Text = "ChangePixelFormat";
+            this.changePixelFormatToolStripMenuItem.Click += new System.EventHandler(this.changePixelFormatToolStripMenuItem_Click);
             // 
             // splitContainer1
             // 
@@ -219,13 +227,6 @@ namespace ImageFilters
             this.mainPicturePropertyGrid.Name = "mainPicturePropertyGrid";
             this.mainPicturePropertyGrid.Size = new System.Drawing.Size(163, 424);
             this.mainPicturePropertyGrid.TabIndex = 0;
-            // 
-            // changePixelFormatToolStripMenuItem
-            // 
-            this.changePixelFormatToolStripMenuItem.Name = "changePixelFormatToolStripMenuItem";
-            this.changePixelFormatToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.changePixelFormatToolStripMenuItem.Text = "ChangePixelFormat";
-            this.changePixelFormatToolStripMenuItem.Click += new System.EventHandler(this.changePixelFormatToolStripMenuItem_Click);
             // 
             // MainForm
             // 

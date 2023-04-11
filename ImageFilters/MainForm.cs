@@ -53,6 +53,10 @@ namespace ImageFilters
                 "png files (*.png)|*.png|" +
                 "tiff files (*.tiff; *.tif)|*.tiff; *.tif|" +
                 "All files (*.*)|*.*";
+
+            //openToolStripMenuItem_Click(this, new EventArgs());
+            //changePixelFormatToolStripMenuItem_Click(this, new EventArgs());
+            //invertToolStripMenuItem_Click(this, new EventArgs());
         }
 
         #endregion
@@ -132,7 +136,7 @@ namespace ImageFilters
         private void changePixelFormatToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ConvertPixelFormatCommand changeFormatCommad = new ConvertPixelFormatCommand(_originalImage);
-            changeFormatCommad.TargetPixelFormat = PixelFormat.Format4bppIndexed;
+            changeFormatCommad.TargetPixelFormat = PixelFormat.Format8bppIndexed;
             changeFormatCommad.Execute();
             
             // if there is error
@@ -170,6 +174,12 @@ namespace ImageFilters
         private void mainPictureBox_Paint(object sender, PaintEventArgs e)
         {
             mainPicturePropertyGrid.SelectedObject = mainPictureBox.Image;
+        }
+
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
 
         #endregion
