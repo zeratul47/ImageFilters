@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace ImageFilters.Commands
 {
@@ -131,9 +132,17 @@ namespace ImageFilters.Commands
                 switch (_resultImage.PixelFormat)
                 {
                     case PixelFormat.Format16bppGrayScale:
-                        //Execute16gray(srcData);
+                        Execute16gray(srcData, resData);
                         break;
+                    case PixelFormat.Format16bppArgb1555:
+                    case PixelFormat.Format16bppRgb555:
+                        break;
+                    case PixelFormat.Format16bppRgb565:
+                        break;
+                    case PixelFormat.Format48bppRgb:
+                    case PixelFormat.Format64bppArgb:
 
+                        break;
                     case PixelFormat.Format24bppRgb:
                     case PixelFormat.Format32bppRgb:
                     case PixelFormat.Format32bppArgb:
@@ -173,9 +182,70 @@ namespace ImageFilters.Commands
 
         #region PRIVATE
 
-        private void Execute16gray(BitmapData srcData)
+        private void Execute16gray(BitmapData srcData, BitmapData resData)
         {
+            unsafe
+            {
+                // get bytes per pixel src
+                int bytesPerPixelSrc = Image.GetPixelFormatSize(srcData.PixelFormat) / BIT_PER_BYTE;
+                // get image height
+                int heightInPixels = srcData.Height;
+                // get image width in bytes
+                int widthInBytesSrc = srcData.Width * bytesPerPixelSrc;
+                // get pointer to the first byte
+                byte* ptrFirstPixelSrc = (byte*)srcData.Scan0;
 
+                int newGrayValue = 0;
+
+                switch (srcData.PixelFormat)
+                {
+                    case PixelFormat.Format16bppGrayScale:
+                        //Execute16gray(srcData);
+                        break;
+                    case PixelFormat.Format16bppArgb1555:
+                    case PixelFormat.Format16bppRgb555:
+                        break;
+                    case PixelFormat.Format16bppRgb565:
+                        break;
+                    case PixelFormat.Format24bppRgb:
+                    case PixelFormat.Format32bppRgb:
+                    case PixelFormat.Format32bppArgb:
+                        // get bytes per pixel result
+                        int bytesPerPixelRes = Image.GetPixelFormatSize(resData.PixelFormat) / BIT_PER_BYTE;
+                        // get pointer to the first byte result 
+                        byte* ptrFirstPixelRes = (byte*)resData.Scan0;
+
+                        // for each row
+                        for (int y = 0; y < heightInPixels; y++)
+                        {
+                            // get pointer to current row
+                            byte* currentLineSrc = ptrFirstPixelSrc + (y * srcData.Stride);
+                            byte* currentLineRes = ptrFirstPixelRes + (y * resData.Stride);
+                            // for each pixel in row
+                            for (int xSrc = 0, xRes = 0;
+                                xSrc < widthInBytesSrc;
+                                xRes += bytesPerPixelRes, xSrc += bytesPerPixelSrc)
+                            {
+                                // get pixel value
+                                newGrayValue = ((
+                                    currentLineSrc[xSrc] +
+                                    currentLineSrc[xSrc + 1] +
+                                    currentLineSrc[xSrc + 2]) / 3) * 256 - 1;
+                                currentLineSrc[xSrc] = (byte)((newGrayValue & 0xFF00) >> 8);
+                                currentLineSrc[xSrc + 1] = (byte)(newGrayValue & 0x00FF);
+                            }
+                        }
+                        break;
+                    case PixelFormat.Format48bppRgb:
+                    case PixelFormat.Format64bppArgb:
+
+                        break;
+                    case PixelFormat.Format1bppIndexed:
+                    case PixelFormat.Format4bppIndexed:
+                    case PixelFormat.Format8bppIndexed:
+                        break;
+                }
+            }
         }
 
         private void Execute16argb1555(BitmapData srcData)
@@ -266,6 +336,10 @@ namespace ImageFilters.Commands
 
         private void ExecuteIndexed(BitmapData srcData, BitmapData resData, int quantNumber)
         {
+
+            var watch = new System.Diagnostics.Stopwatch();
+
+            watch.Start();
             unsafe
             {
                 // get bytes per pixel src
@@ -278,8 +352,9 @@ namespace ImageFilters.Commands
                 byte* ptrFirstPixelSrc = (byte*)srcData.Scan0;
 
 
-                List<Tuple<Color, List<int>>> data = new List<Tuple<Color, List<int>>>(srcData.Height * srcData.Width);
-
+                //List<Tuple<Color, List<int>>> data = new List<Tuple<Color, List<int>>>(srcData.Height * srcData.Width);
+                int[,] data = new int[srcData.Height * srcData.Width, 5];
+                int ind = 0;
                 switch (srcData.PixelFormat)
                 {
                     case PixelFormat.Format16bppGrayScale:
@@ -301,13 +376,12 @@ namespace ImageFilters.Commands
                             for (int xSrc = 0;
                                 xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
                             {
-                                List<int> indexes = new List<int>();
-                                indexes.Add(y * srcData.Width + xSrc / bytesPerPixelSrc);
-                                data.Add(
-                                    Tuple.Create(Color.FromArgb(255,
-                                    currentLineSrc[xSrc + 2],
-                                    currentLineSrc[xSrc + 1],
-                                    currentLineSrc[xSrc]), indexes));
+                                data[ind, 0] = 255;
+                                data[ind, 1] = currentLineSrc[xSrc + 2];
+                                data[ind, 2] = currentLineSrc[xSrc + 1];
+                                data[ind, 3] = currentLineSrc[xSrc];
+                                data[ind, 4] = ind;
+                                ind++;
                             }
                         }
 
@@ -322,13 +396,12 @@ namespace ImageFilters.Commands
                             for (int xSrc = 0;
                                 xSrc < widthInBytesSrc; xSrc += bytesPerPixelSrc)
                             {
-                                List<int> indexes = new List<int>();
-                                indexes.Add(y * srcData.Width + xSrc / bytesPerPixelSrc);
-                                data.Add(
-                                    Tuple.Create(Color.FromArgb(currentLineSrc[xSrc + 3],
-                                    currentLineSrc[xSrc + 2],
-                                    currentLineSrc[xSrc + 1],
-                                    currentLineSrc[xSrc]), indexes));
+                                data[ind, 0] = currentLineSrc[xSrc + 3];
+                                data[ind, 1] = currentLineSrc[xSrc + 2];
+                                data[ind, 2] = currentLineSrc[xSrc + 1];
+                                data[ind, 3] = currentLineSrc[xSrc];
+                                data[ind, 4] = ind;
+                                ind++;
                             }
                         }
 
@@ -344,14 +417,11 @@ namespace ImageFilters.Commands
                         break;
                 }
 
-                //var watch = new System.Diagnostics.Stopwatch();
-
-                //watch.Start();
                 MedianCut medianCut = new MedianCut(data, quantNumber);
                 medianCut.Execute();
-                //watch.Stop();
+                watch.Stop();
 
-                //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
+                Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
 
                 switch (resData.PixelFormat)
                 {

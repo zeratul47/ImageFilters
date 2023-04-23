@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -136,16 +137,16 @@ namespace ImageFilters
         private void changePixelFormatToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ConvertPixelFormatCommand changeFormatCommad = new ConvertPixelFormatCommand(_originalImage);
-            changeFormatCommad.TargetPixelFormat = PixelFormat.Format8bppIndexed;
+            changeFormatCommad.TargetPixelFormat = PixelFormat.Format16bppGrayScale;
             changeFormatCommad.Execute();
-            
+
             // if there is error
             if (changeFormatCommad.Error != null)
-            {
-                MessageBox.Show(changeFormatCommad.Error.Message);
-                // return
-                return;
-            }
+                {
+                    MessageBox.Show(changeFormatCommad.Error.Message);
+                    // return
+                    return;
+                }
 
             // set filter image
             _filteredImage = changeFormatCommad.Result;

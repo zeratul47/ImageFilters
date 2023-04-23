@@ -10,11 +10,12 @@ namespace ImageFilters.Commands.Utils
 
         int _quantizationNumber = 0;
 
-        List<Tuple<Color, List<int>>> _colorDataSource;
-
         List<Tuple<Color, List<int>>> _colorDataResult;
 
-        MedianCutComparer _comparer;
+        int[,] _colorDataSourceArr;
+        int[] _colorDataSourceArrInds;
+
+        MedianCutComparerArr _comparerArr;
 
         List<Tuple<int, int>> _indexes;
 
@@ -33,10 +34,10 @@ namespace ImageFilters.Commands.Utils
         }
 
 
-        public List<Tuple<Color, List<int>>> ColorDataSource
+        public int[,] ColorDataSource
         {
-            get { return _colorDataSource; }
-            set { _colorDataSource = value; }
+            get { return _colorDataSourceArr; }
+            set { _colorDataSourceArr = value; }
         }
 
         public List<Tuple<Color, List<int>>> ColorDataResult
@@ -51,11 +52,13 @@ namespace ImageFilters.Commands.Utils
 
         #region PUBLIC
 
-        public MedianCut(List<Tuple<Color, List<int>>> data, int quantizationNumber)
+        public MedianCut(int[,] data, int quantizationNumber)
         {
             ColorDataSource = data;
             QuantizationNumber = quantizationNumber;
-            _comparer = new MedianCutComparer();
+
+            _comparerArr = new MedianCutComparerArr();
+
             int capacity = (int)Math.Pow(2, quantizationNumber);
             _indexes = new List<Tuple<int, int>>(capacity);
             _colorDataResult = new List<Tuple<Color, List<int>>>();
@@ -66,31 +69,43 @@ namespace ImageFilters.Commands.Utils
             if (QuantizationNumber < 1)
                 return;
 
-            ExecuteCut(0, _colorDataSource.Count, 1);
+            int length = _colorDataSourceArr.GetLength(0);
+            _colorDataSourceArrInds = new int[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                _colorDataSourceArrInds[i] = i;
+            }
+            _comparerArr.ColorData = _colorDataSourceArr;
+            ExecuteCut(0, length, 1);
 
             _colorDataResult.Clear();
-            List<int> indexesToMap = new List<int>();
+            
+            int[] indexesToMap = new int[1];
+            
             foreach (Tuple<int, int> indexPair in _indexes)
             {
                 int avgA = 0;
                 int avgR = 0;
                 int avgG = 0;
                 int avgB = 0;
-                indexesToMap.Clear();
-
+                int size = indexPair.Item2 - indexPair.Item1;
+                Array.Resize<int>(ref indexesToMap, size);
+                int ind = 0;
                 for (int i = indexPair.Item1; i < indexPair.Item2; i++)
                 {
-                    avgA += _colorDataSource[i].Item1.A;
-                    avgR += _colorDataSource[i].Item1.R;
-                    avgG += _colorDataSource[i].Item1.G;
-                    avgB += _colorDataSource[i].Item1.B;
-                    indexesToMap.AddRange(_colorDataSource[i].Item2);
+                    avgA += _colorDataSourceArr[_colorDataSourceArrInds[i], 0];
+                    avgR += _colorDataSourceArr[_colorDataSourceArrInds[i], 1];
+                    avgG += _colorDataSourceArr[_colorDataSourceArrInds[i], 2];
+                    avgB += _colorDataSourceArr[_colorDataSourceArrInds[i], 3];
+                    indexesToMap[ind] = _colorDataSourceArr[_colorDataSourceArrInds[i], 4];
+                    ind++;
                 }
 
-                avgA /= (indexPair.Item2 - indexPair.Item1);
-                avgR /= (indexPair.Item2 - indexPair.Item1);
-                avgG /= (indexPair.Item2 - indexPair.Item1);
-                avgB /= (indexPair.Item2 - indexPair.Item1);
+                avgA /= size;
+                avgR /= size;
+                avgG /= size;
+                avgB /= size;
 
                 _colorDataResult.Add(
                     Tuple.Create(
@@ -107,22 +122,21 @@ namespace ImageFilters.Commands.Utils
             if (step == QuantizationNumber + 1)
                 _indexes.Add(Tuple.Create(startIndex, endIndex));
 
-            Color ranges = GetRanges(_colorDataSource, startIndex, endIndex);
-
+            Color ranges = GetRanges(_colorDataSourceArr, startIndex, endIndex);
 
             if (ranges.G >= ranges.B && ranges.G >= ranges.R)
             {
-                _comparer.ChannelID = 2;
+                _comparerArr.ChannelID = 2;
             }
             else if(ranges.B >= ranges.G && ranges.B >= ranges.R)
             {
-                _comparer.ChannelID = 3;
+                _comparerArr.ChannelID = 3;
             }
             else
             {
-                _comparer.ChannelID = 1;
+                _comparerArr.ChannelID = 1;
             }
-            _colorDataSource.Sort(startIndex, endIndex - startIndex, _comparer);
+            Array.Sort(_colorDataSourceArrInds, startIndex, endIndex - startIndex, _comparerArr);
 
             int midIndex = (endIndex + startIndex) / 2;
             ExecuteCut(startIndex, midIndex, step + 1);
@@ -134,61 +148,52 @@ namespace ImageFilters.Commands.Utils
         #region PRIVATE
 
         private Color GetRanges(
-            List<Tuple<Color, List<int>>> colorData,
+            int[,] colorData,
             int startIndex,
-            int endIndex)
+            int endIndex
+            )
         {
-            int minA = colorData[startIndex].Item1.A;
-            int minR = colorData[startIndex].Item1.R;
-            int minG = colorData[startIndex].Item1.G;
-            int minB = colorData[startIndex].Item1.B;
+            int minR = colorData[_colorDataSourceArrInds[startIndex], 1];
+            int minG = colorData[_colorDataSourceArrInds[startIndex], 2];
+            int minB = colorData[_colorDataSourceArrInds[startIndex], 3];
 
-            int maxA = colorData[startIndex].Item1.A;
-            int maxR = colorData[startIndex].Item1.R;
-            int maxG = colorData[startIndex].Item1.G;
-            int maxB = colorData[startIndex].Item1.B;
+            int maxR = colorData[_colorDataSourceArrInds[startIndex], 1];
+            int maxG = colorData[_colorDataSourceArrInds[startIndex], 2];
+            int maxB = colorData[_colorDataSourceArrInds[startIndex], 3];
 
-            for (int i = startIndex;  i < endIndex; i++)
+            for (int i = startIndex; i < endIndex; i++)
             {
                 // get min values
-                if (minA > colorData[i].Item1.A)
+                if (minR > colorData[_colorDataSourceArrInds[i], 1])
                 {
-                    minA = colorData[i].Item1.A;
+                    minR = colorData[_colorDataSourceArrInds[i], 1];
                 }
-                if (minR > colorData[i].Item1.R)
+                if (minG > colorData[_colorDataSourceArrInds[i], 2])
                 {
-                    minR = colorData[i].Item1.R;
+                    minG = colorData[_colorDataSourceArrInds[i], 2];
                 }
-                if (minG > colorData[i].Item1.G)
+                if (minB > colorData[_colorDataSourceArrInds[i], 3])
                 {
-                    minG = colorData[i].Item1.G;
-                }
-                if (minB > colorData[i].Item1.B)
-                {
-                    minB = colorData[i].Item1.B;
+                    minB = colorData[_colorDataSourceArrInds[i], 3];
                 }
 
                 // get max values
-                if (maxA < colorData[i].Item1.A)
+                if (maxR < colorData[_colorDataSourceArrInds[i], 1])
                 {
-                    maxA = colorData[i].Item1.A;
+                    maxR = colorData[_colorDataSourceArrInds[i], 1];
                 }
-                if (maxR < colorData[i].Item1.R)
+                if (maxG < colorData[_colorDataSourceArrInds[i], 2])
                 {
-                    maxR = colorData[i].Item1.R;
+                    maxG = colorData[_colorDataSourceArrInds[i], 2];
                 }
-                if (maxG < colorData[i].Item1.G)
+                if (maxB < colorData[_colorDataSourceArrInds[i], 3])
                 {
-                    maxG = colorData[i].Item1.G;
-                }
-                if (maxB < colorData[i].Item1.B)
-                {
-                    maxB = colorData[i].Item1.B;
+                    maxB = colorData[_colorDataSourceArrInds[i], 3];
                 }
             }
 
             // return ranges
-            return Color.FromArgb(maxA - minA, maxR - minR, maxG - minG, maxB - minB);
+            return Color.FromArgb(255, maxR - minR, maxG - minG, maxB - minB);
         }
 
         #endregion
