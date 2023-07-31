@@ -1,35 +1,36 @@
 ﻿using ImageFilters.Commands.Utils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 
 namespace ImageFilters.Commands
 {
+    /// <summary>
+    /// The command, which converts image pixel format.
+    /// </summary>
     public class ConvertPixelFormatCommand : ICommand
     {
-        #region FIELDS
-
+        #region CONSTANTS
+        
+        /// <summary>
+        /// The number of bits in one byte.
+        /// </summary>
         const byte BIT_PER_BYTE = 8;
+
+        #endregion
+
+
+
+        #region FIELDS
 
         /// <summary>
         /// Image to invert.
         /// </summary>
         Bitmap _inputImage;
 
-        /// <summary>
-        /// Result of image invertion.
-        /// </summary>
-        Bitmap _resultImage;
-
-        /// <summary>
-        /// Exception of command execution.
-        /// </summary>
-        Exception _error;
-
         #endregion
+
 
 
         #region PROPERTIES
@@ -72,6 +73,7 @@ namespace ImageFilters.Commands
             }
         }
 
+        Bitmap _resultImage;
         /// <summary>
         /// The result of command.
         /// </summary>
@@ -83,6 +85,7 @@ namespace ImageFilters.Commands
             }
         }
 
+        Exception _error;
         /// <summary>
         /// Exception, during command execution.
         /// </summary>
@@ -97,7 +100,8 @@ namespace ImageFilters.Commands
         #endregion
 
 
-        #region METHODS
+
+        #region CONSTRUCTORS
 
         /// <summary>
         /// Creates convert pixel format command object.
@@ -108,6 +112,14 @@ namespace ImageFilters.Commands
             _inputImage = inputImage;
         }
 
+        #endregion
+
+
+
+        #region METHODS
+
+        #region PUBLIC
+
         /// <summary>
         /// Executes convert pixel format command.
         /// </summary>
@@ -116,7 +128,7 @@ namespace ImageFilters.Commands
             // clone input image
             _resultImage = new Bitmap(_inputImage.Width, _inputImage.Height, TargetPixelFormat);
 
-            // read bitmap to memory
+            // read bitmaps to memory
             BitmapData resData = _resultImage.LockBits(
                 new Rectangle(0, 0, _resultImage.Width, _resultImage.Height),
                 ImageLockMode.ReadWrite,
@@ -179,9 +191,16 @@ namespace ImageFilters.Commands
             }
         }
 
+        #endregion
+
 
         #region PRIVATE
 
+        /// <summary>
+        /// Converts <paramref name="srcData"/> bitmap's pixel format into 16Gray pixel format.
+        /// </summary>
+        /// <param name="srcData">The bitmap to convert.</param>
+        /// <param name="resData">The resulting bitmap.</param>
         private void Execute16gray(BitmapData srcData, BitmapData resData)
         {
             unsafe
@@ -263,6 +282,11 @@ namespace ImageFilters.Commands
 
         }
 
+        /// <summary>
+        /// Converts <paramref name="srcData"/> bitmap's pixel format into RGB24 pixel format.
+        /// </summary>
+        /// <param name="srcData">The bitmap to convert.</param>
+        /// <param name="resData">The resulting bitmap.</param>
         private void Execute24rgb(BitmapData srcData, BitmapData resData)
         {
             unsafe
@@ -334,12 +358,17 @@ namespace ImageFilters.Commands
 
         }
 
+        /// <summary>
+        /// Converts <paramref name="srcData"/> bitmap's pixel format into Indexed pixel format.
+        /// </summary>
+        /// <param name="srcData">The bitmap to convert.</param>
+        /// <param name="resData">The resulting bitmap.</param>
         private void ExecuteIndexed(BitmapData srcData, BitmapData resData, int quantNumber)
         {
 
-            var watch = new System.Diagnostics.Stopwatch();
+            //var watch = new System.Diagnostics.Stopwatch();
 
-            watch.Start();
+            //watch.Start();
             unsafe
             {
                 // get bytes per pixel src
@@ -419,9 +448,9 @@ namespace ImageFilters.Commands
 
                 MedianCut medianCut = new MedianCut(data, quantNumber);
                 medianCut.Execute();
-                watch.Stop();
+                //watch.Stop();
 
-                Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
+                //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
 
                 switch (resData.PixelFormat)
                 {

@@ -80,7 +80,8 @@ namespace ImageFilters.Commands
         #endregion
 
 
-        #region METHODS
+
+        #region Constructors
 
         /// <summary>
         /// Creates Invert command object.
@@ -90,6 +91,12 @@ namespace ImageFilters.Commands
         {
             _inputImage = inputImage;
         }
+
+        #endregion
+
+
+
+        #region METHODS
 
         /// <summary>
         /// Executes invert command.
@@ -116,13 +123,13 @@ namespace ImageFilters.Commands
                     case PixelFormat.Format24bppRgb:
                     case PixelFormat.Format32bppRgb:
                     case PixelFormat.Format32bppArgb:
-                        var watch = new System.Diagnostics.Stopwatch();
+                        //var watch = new System.Diagnostics.Stopwatch();
 
-                        watch.Start();
+                        //watch.Start();
                         Execute24and32argb(srcData);
-                        watch.Stop();
+                        //watch.Stop();
 
-                        Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
+                        //Debug.WriteLine($"Execution Time: {watch.ElapsedMilliseconds / 1000.0} s");
                         break;
                 }
 
@@ -146,6 +153,10 @@ namespace ImageFilters.Commands
 
         #region PRIVATE
 
+        /// <summary>
+        /// Inverts 16Gray Bitmap.
+        /// </summary>
+        /// <param name="srcData">The bitmap to invert.</param>
         private void Execute16gray(BitmapData srcData)
         {
             unsafe
@@ -174,7 +185,6 @@ namespace ImageFilters.Commands
                         oldValue = currentLine[x];
                         // bitwise negation
                         currentLine[x] = (byte)~oldValue;
-
                     }
                 }
             }
@@ -195,6 +205,10 @@ namespace ImageFilters.Commands
 
         }
 
+        /// <summary>
+        /// Inverts RGB24, RGB32, RGBA32 Bitmap.
+        /// </summary>
+        /// <param name="srcData">The bitmap to invert.</param>
         private void Execute24and32argb(BitmapData srcData)
         {
             unsafe

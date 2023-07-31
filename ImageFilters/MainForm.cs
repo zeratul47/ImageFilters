@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+﻿using ImageFilters.Commands;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using ImageFilters.Commands;
 
 namespace ImageFilters
 {
@@ -36,9 +28,8 @@ namespace ImageFilters
         #endregion
 
 
-        #region METHODS
 
-        #region PUBLIC
+        #region CONSTRUCTOR
 
         /// <summary>
         /// Initialization of the viewer.
@@ -48,20 +39,19 @@ namespace ImageFilters
             InitializeComponent();
 
             _openFileDialog = new OpenFileDialog();
-            _openFileDialog.Filter = 
+            _openFileDialog.Filter =
                 "bitmap files (*.bmp)|*.bmp|" +
                 "jpeg files (*.jpg; *.jpeg)|*.jpg; *.jpeg|" +
                 "png files (*.png)|*.png|" +
                 "tiff files (*.tiff; *.tif)|*.tiff; *.tif|" +
                 "All files (*.*)|*.*";
-
-            //openToolStripMenuItem_Click(this, new EventArgs());
-            //changePixelFormatToolStripMenuItem_Click(this, new EventArgs());
-            //invertToolStripMenuItem_Click(this, new EventArgs());
         }
 
         #endregion
 
+
+
+        #region METHODS
 
         #region PRIVATE
 
@@ -133,20 +123,26 @@ namespace ImageFilters
             filteredPictureBox.Image = _filteredImage;
         }
 
-
+        /// <summary>
+        /// Applyes the change pixel format command to the image.
+        /// </summary>
+        /// <param name="sender">Caller object.</param>
+        /// <param name="e">Event information.</param>
         private void changePixelFormatToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ConvertPixelFormatCommand changeFormatCommad = new ConvertPixelFormatCommand(_originalImage);
-            changeFormatCommad.TargetPixelFormat = PixelFormat.Format16bppGrayScale;
+            
+            // TODO make it changeble from property grid
+            changeFormatCommad.TargetPixelFormat = PixelFormat.Format8bppIndexed;
+
             changeFormatCommad.Execute();
 
             // if there is error
             if (changeFormatCommad.Error != null)
-                {
-                    MessageBox.Show(changeFormatCommad.Error.Message);
-                    // return
-                    return;
-                }
+            {
+                MessageBox.Show(changeFormatCommad.Error.Message);
+                return;
+            }
 
             // set filter image
             _filteredImage = changeFormatCommad.Result;
@@ -177,7 +173,11 @@ namespace ImageFilters
             mainPicturePropertyGrid.SelectedObject = mainPictureBox.Image;
         }
 
-
+        /// <summary>
+        /// Closes the App.
+        /// </summary>
+        /// <param name="sender">Caller object.</param>
+        /// <param name="e">Event information.</param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
